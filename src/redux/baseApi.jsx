@@ -18,7 +18,24 @@ export const whatsAppApi = createApi({
         body: { chatId: `${reciever}@c.us`, message: message },
       }),
     }),
+    recieveNotification: builder.query({
+      query: ({ idInstance, apiTokenInstance }) => ({
+        url: `waInstance${idInstance}/receiveNotification/${apiTokenInstance}`,
+      }),
+    }),
+    deleteNotification: builder.mutation({
+      query: ({ idInstance, apiTokenInstance, receiptId }) => ({
+        url: `waInstance${idInstance}/deleteNotification/${apiTokenInstance}`,
+        method: "DELETE",
+        body: { receiptId: receiptId },
+      }),
+    }),
   }),
 });
 
-export const { useGetSettingsQuery, useSendMessageMutation } = whatsAppApi;
+export const {
+  useGetSettingsQuery,
+  useSendMessageMutation,
+  useRecieveNotificationQuery,
+  useDeleteNotificationMutation,
+} = whatsAppApi;

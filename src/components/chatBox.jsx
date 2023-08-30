@@ -1,8 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import InputField from "./inputField";
 import styled from "styled-components";
 import MessageSent from "./messageSent";
 import MessageRecieved from "./messageRecieved";
+import {
+  useRecieveNotificationQuery,
+  useDeleteNotificationMutation,
+} from "../redux/baseApi";
 
 const MainBox = styled.div`
   display: flex;
@@ -46,8 +50,51 @@ const AddresseeName = styled.h4`
 
 function ChatBox() {
   const [messages, setMessages] = useState([]);
+  const [recMessages, setRecMessages] = useState([]);
   const addressee = localStorage.getItem("addressee"); // Retrieve the number from local storage
 
+  const [deleteNotification] = useDeleteNotificationMutation();
+
+  const { data: receivedMessages, refetch: refetchNotifications } =
+    useRecieveNotificationQuery({
+      idInstance: localStorage.getItem("userId"),
+      apiTokenInstance: localStorage.getItem("apiToken"),
+    });
+  console.log(receivedMessages);
+
+  useEffect(() => {
+    if (receivedMessages && receivedMessages.length > 0) {
+      setRecMessages((prev) => [...prev, ...receivedMessages]);
+
+      receivedMessages.forEach((msg) => {
+        deleteNotification({
+          idInstance: localStorage.getItem("userId"),
+          apiTokenInstance: localStorage.getItem("apiToken"),
+          receiptId: msg.receiptId,
+        });
+      });
+    }
+  }, [receivedMessages, deleteNotification]);
+
+  useEffect(() => {
+    if (receivedMessages) {
+      const fetchInterval = setInterval(() => {
+        refetchNotifications();
+      }, 5000);
+
+      return () => clearInterval(fetchInterval);
+    }
+  }, [receivedMessages, refetchNotifications]);
+
+  const HandleReceiving = async () => {
+    try {
+      const data = await refetchNotifications();
+      console.log(data);
+      console.log(data.requestId);
+    } catch (error) {
+      console.error("Error while refetching:", error);
+    }
+  };
   return (
     <div>
       <MainBox>
@@ -58,9 +105,13 @@ function ChatBox() {
           {messages.map((msg, index) => (
             <MessageSent key={index} message={msg} />
           ))}
-          <MessageRecieved />
+
+          {recMessages.map((text, index) => (
+            <MessageRecieved key={index} message={text} />
+          ))}
         </ConversationContainer>
         <InputField setMessage={setMessages} />
+        <button onClick={HandleReceiving}>Check button</button>
       </MainBox>
     </div>
   );
