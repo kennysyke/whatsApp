@@ -51,14 +51,14 @@ const AddresseeName = styled.h4`
 function ChatBox() {
   const [messages, setMessages] = useState([]);
   const [recMessages, setRecMessages] = useState([]);
-  const addressee = localStorage.getItem("addressee"); // Retrieve the number from local storage
+  const addressee = localStorage.getItem("addressee"); // Retrieve the number from local storage(change to cookies)
 
   const [deleteNotification] = useDeleteNotificationMutation();
 
   const { data: receivedMessages, refetch: refetchNotifications } =
     useRecieveNotificationQuery({
-      idInstance: localStorage.getItem("userId"),
-      apiTokenInstance: localStorage.getItem("apiToken"),
+      idInstance: localStorage.getItem("userId"), //change to cookies
+      apiTokenInstance: localStorage.getItem("apiToken"), //change to cookies
     });
   console.log(receivedMessages);
 
@@ -66,12 +66,10 @@ function ChatBox() {
     if (receivedMessages && receivedMessages.length > 0) {
       setRecMessages((prev) => [...prev, ...receivedMessages]);
 
-      receivedMessages.forEach((msg) => {
-        deleteNotification({
-          idInstance: localStorage.getItem("userId"),
-          apiTokenInstance: localStorage.getItem("apiToken"),
-          receiptId: msg.receiptId,
-        });
+      deleteNotification({
+        idInstance: localStorage.getItem("userId"),
+        apiTokenInstance: localStorage.getItem("apiToken"),
+        receiptId: receivedMessages.receiptId,
       });
     }
   }, [receivedMessages, deleteNotification]);
